@@ -1,0 +1,84 @@
+ld2:idi2e7:snippet87:ignore-project: False
+tests: True
+test-options: "--color"
+test-show-details: streaming
+8:filename21:./cabal.project.local8:language4:YAML11:description18:Cabal local config4:tagsl5:cabal7:haskell5:localeed2:idi1e7:snippet184:cradle:
+  cabal:
+    - path: "./src"
+      component: "lib:hs-snippet-mgr"
+    - path: "./app"
+      component: "exe:hs-snippet-mgr"
+    - path: "./test"
+      component: "test:tests"
+8:filename10:./hie.yaml8:language4:YAML11:description10:Hie config4:tagsl3:hie7:haskelleed2:idi0e7:snippet1707:module Main where
+
+import Args (parseArgs, Args(..), AddOptions (..), SearchOptions, GetOptions)
+import System.Environment (getArgs)
+import Result
+import Data.List (intersperse, intercalate)
+import qualified SnippetDB as DB
+import SnippetEntry (Entry(..))
+
+
+usageMsg :: String 
+usageMsg = intercalate "\n"
+  [ "snip - code snippet manager"
+  , "Usage: "
+  , "snip add <filename> lang [description] [..tags]"
+  , "snip search [code:term] [desc:term] [tag:term] [lang:term]"
+  , "snip get <id>"
+  , "snip init"
+  ]
+
+run :: Args -> IO ()
+run (Add addOpts) = handleAdd addOpts
+run (Search searchOpts) = handleSearch searchOpts
+run (Get getOpts) = handleGet getOpts
+run Init = handleInit
+run Help = putStrLn usageMsg
+
+handleInit :: IO ()
+handleInit = do
+  DB.saveDB DB.emptyDB
+  return ()
+
+
+handleGet :: GetOptions -> IO ()
+handleGet getOpts = do
+  db <- DB.loadDB
+  return ()
+
+handleSearch :: SearchOptions -> IO ()
+handleSearch searchOpts = do
+  db <- DB.loadDB
+  return ()
+
+handleAdd :: AddOptions -> IO ()
+handleAdd addOpts = do
+  snip <- readFile (addOptFilename addOpts)
+  db <- DB.loadDB
+  let 
+    db' = getSuccess db DB.emptyDB
+    db'' = DB.insertWith (\id -> addOptsToEntry id snip addOpts) db'
+  DB.saveDB db''
+  return ()
+
+addOptsToEntry :: Int -> String -> AddOptions -> Entry
+addOptsToEntry id snippet addOpts =
+  Entry 
+  { entryId = id
+  , entrySnippet = snippet
+  , entryFilename = addOptFilename addOpts
+  , entryLanguage = addOptLanguage addOpts
+  , entryDescription = addOptDescription addOpts
+  , entryTags = addOptTags addOpts
+  }
+
+main :: IO ()
+main = do
+  args <- getArgs
+  let parsed = parseArgs args
+  case parsed of
+    (Error err) -> putStrLn usageMsg
+    (Success args) -> run args
+8:filename13:./app/Main.hs8:language7:Haskell11:description9:Main file4:tagsleee
